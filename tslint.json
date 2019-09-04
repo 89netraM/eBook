@@ -83,7 +83,8 @@
         true,
         "tabs"
     ],
-    "eofline": false
+    "eofline": false,
+    "one-line": false
   },
   "rulesDirectory": [
     "codelyzer"
