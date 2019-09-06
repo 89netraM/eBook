@@ -15,10 +15,6 @@ label > input[type="file"] + span {
 	}
 }
 
-textarea {
-	display: block;
-
-	width: 100%;
-	min-height: 75vh;
-	margin-top: 10px;
+img {
+	max-width: 100%;
 }
