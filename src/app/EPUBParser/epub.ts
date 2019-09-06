@@ -18,18 +18,7 @@ export class EPUB {
 		const metaSrc = await this.zip.files["META-INF/container.xml"].async("text");
 		const meta = this.xmlParser.parse(metaSrc);
 
-		const rootPath = meta.evaluate(
-			"//o:rootfiles/o:rootfile[1]/@full-path",
-			meta.documentElement,
-			p => {
-				switch (p) {
-					case "o": return "urn:oasis:names:tc:opendocument:xmlns:container";
-					default: return null;
-				}
-			},
-			XPathResult.STRING_TYPE,
-			null
-		).stringValue;
+		const rootPath = this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
 		this.rootDir = Path.dirname(rootPath);
 		const rootSrc = await this.zip.files[rootPath].async("text");
 		this.root = this.xmlParser.parse(rootSrc);
@@ -38,6 +27,7 @@ export class EPUB {
 	private readXML(document: Document, xPath: string, resultType: number): XPathResult {
 		const nsResolver = (p: string) => {
 			switch (p) {
+				case "o": return "urn:oasis:names:tc:opendocument:xmlns:container";
 				case "p": return "http://www.idpf.org/2007/opf";
 				case "dc": return "http://purl.org/dc/elements/1.1/";
 				case "opf": return "http://www.idpf.org/2007/opf";
