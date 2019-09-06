@@ -3,11 +3,13 @@ import * as JSZip from "jszip";
 import * as Path from "path";
 
 export class EPUB {
+	private static readonly metaPath: string = "META-INF/container.xml";
+
 	private xmlParser: XMLParserService;
 	private zip: JSZip;
 
 	private rootDir: string;
-	private root: Document;
+	private rootDoc: Document;
 
 	public constructor(xmlParser: XMLParserService, zip: JSZip) {
 		this.xmlParser = xmlParser;
@@ -15,13 +17,24 @@ export class EPUB {
 	}
 
 	public async init(): Promise<void> {
-		const metaSrc = await this.zip.files["META-INF/container.xml"].async("text");
-		const meta = this.xmlParser.parse(metaSrc);
+		if (EPUB.metaPath in this.zip.files) {
+			const metaSrc = await this.zip.files[EPUB.metaPath].async("text");
+			const meta = this.xmlParser.parse(metaSrc);
 
-		const rootPath = this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
-		this.rootDir = Path.dirname(rootPath);
-		const rootSrc = await this.zip.files[rootPath].async("text");
-		this.root = this.xmlParser.parse(rootSrc);
+			const rootPath = this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
+
+			if (rootPath != null && rootPath.length > 0) {
+				this.rootDir = Path.dirname(rootPath);
+				const rootSrc = await this.zip.files[rootPath].async("text");
+				this.rootDoc = this.xmlParser.parse(rootSrc);
+			}
+			else {
+				throw new Error("Could not find the root file");
+			}
+		}
+		else {
+			throw new Error("Could not find the meta container");
+		}
 	}
 
 	private readXML(document: Document, xPath: string, resultType: number): XPathResult {
@@ -38,7 +51,7 @@ export class EPUB {
 		return document.evaluate(xPath, document.documentElement, nsResolver, resultType, null);
 	}
 	private readRoot(xPath: string, resultType: number): XPathResult {
-		return this.readXML(this.root, xPath, resultType);
+		return this.readXML(this.rootDoc, xPath, resultType);
 	}
 
 	private getFileInRoot(path: string): JSZip.JSZipObject {

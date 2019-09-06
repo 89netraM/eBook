@@ -10,7 +10,13 @@ export class EPUBParserService {
 	public constructor(private xmlParser: XMLParserService) { }
 
 	public async parse(file: File): Promise<EPUB> {
-		const zip = await JSZip.loadAsync(file);
+		let zip: JSZip;
+		try {
+			zip = await JSZip.loadAsync(file);
+		}
+		catch {
+			throw new Error("Not a .epub file");
+		}
 
 		const epub = new EPUB(this.xmlParser, zip);
 		await epub.init();
