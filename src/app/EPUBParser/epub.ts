@@ -1,6 +1,7 @@
 import { XMLParserService } from "../XMLParser/XMLParser.service";
 import * as JSZip from "jszip";
 import * as Path from "path";
+import { TOC } from "./toc";
 
 export class EPUB {
 	private static readonly metaPath: string = "META-INF/container.xml";
@@ -10,6 +11,13 @@ export class EPUB {
 
 	private rootDir: string;
 	private rootDoc: Document;
+
+	private tocDir: string;
+	private tocDoc: Document;
+	private toc: TOC;
+	public get TOC(): TOC {
+		return this.toc;
+	}
 
 	public constructor(xmlParser: XMLParserService, zip: JSZip) {
 		this.xmlParser = xmlParser;
@@ -27,6 +35,40 @@ export class EPUB {
 				this.rootDir = Path.dirname(rootPath);
 				const rootSrc = await this.zip.files[rootPath].async("text");
 				this.rootDoc = this.xmlParser.parse(rootSrc);
+
+				const tocID = this.readRoot("//p:spine/@toc", XPathResult.STRING_TYPE).stringValue;
+
+				if (tocID != null && tocID.length > 0) {
+					const tocPath = this.readRoot(`//p:manifest/*[@id="${tocID}"]/@href`, XPathResult.STRING_TYPE).stringValue;
+
+					if (tocPath != null && tocPath.length > 0) {
+						this.tocDir = Path.join(this.rootDir, Path.dirname(tocPath));
+						const tocSrc = await this.getFileInRoot(tocPath).async("text");
+						this.tocDoc = this.xmlParser.parse(tocSrc);
+
+						if (this.tocDoc != null) {
+							const title = this.readXML(this.tocDoc, "//t:docTitle/t:text/text()", XPathResult.STRING_TYPE).stringValue;
+							this.toc = new TOC(
+								title,
+								null,
+								null,
+								this.generateTOCChildren(
+									this.tocDoc,
+									this.readXML(this.tocDoc, "//t:navMap", XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
+								)
+							);
+						}
+						else {
+							throw new Error("Could not parse the TOC document");
+						}
+					}
+					else {
+						throw new Error("Could not find the TOC file");
+					}
+				}
+				else {
+					throw new Error("Could not find the TOC file's ID");
+				}
 			}
 			else {
 				throw new Error("Could not find the root file");
@@ -37,18 +79,18 @@ export class EPUB {
 		}
 	}
 
+	private nsResolver(p: string): string {
+		switch (p) {
+			case "o": return "urn:oasis:names:tc:opendocument:xmlns:container";
+			case "p": return "http://www.idpf.org/2007/opf";
+			case "dc": return "http://purl.org/dc/elements/1.1/";
+			case "opf": return "http://www.idpf.org/2007/opf";
+			case "t": return "http://www.daisy.org/z3986/2005/ncx/";
+			default: return null;
+		}
+	}
 	private readXML(document: Document, xPath: string, resultType: number): XPathResult {
-		const nsResolver = (p: string) => {
-			switch (p) {
-				case "o": return "urn:oasis:names:tc:opendocument:xmlns:container";
-				case "p": return "http://www.idpf.org/2007/opf";
-				case "dc": return "http://purl.org/dc/elements/1.1/";
-				case "opf": return "http://www.idpf.org/2007/opf";
-				default: return null;
-			}
-		};
-
-		return document.evaluate(xPath, document.documentElement, nsResolver, resultType, null);
+		return document.evaluate(xPath, document.documentElement, this.nsResolver, resultType, null);
 	}
 	private readRoot(xPath: string, resultType: number): XPathResult {
 		return this.readXML(this.rootDoc, xPath, resultType);
@@ -56,6 +98,9 @@ export class EPUB {
 
 	private getFileInRoot(path: string): JSZip.JSZipObject {
 		return this.zip.files[Path.join(this.rootDir, path)];
+	}
+	private getFileInTOC(path: string): JSZip.JSZipObject {
+		return this.zip.files[Path.join(this.tocDir, path)];
 	}
 
 	public getTitle(): string {
@@ -111,5 +156,29 @@ export class EPUB {
 		else {
 			return null;
 		}
+	}
+
+	private generateTOCChildren(doc: Document, parent: Node): Array<TOC> {
+		const children = new Array<TOC>();
+
+		const nodeIterator = doc.evaluate("./t:navPoint", parent, this.nsResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+		for (let node = nodeIterator.iterateNext(); node != null; node = nodeIterator.iterateNext()) {
+			const title = doc.evaluate("./t:navLabel/t:text/text()", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
+
+			const path = doc.evaluate("./t:content/@src", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
+			const [filePath, anchor] = path.split("#");
+			const source = this.getFileInTOC(filePath);
+
+			children.push(
+				new TOC(
+					title,
+					source,
+					anchor,
+					this.generateTOCChildren(doc, node)
+				)
+			);
+		}
+
+		return children;
 	}
 }

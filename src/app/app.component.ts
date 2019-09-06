@@ -23,5 +23,7 @@ export class AppComponent {
 		const imgType = this.epub.getCoverImageType();
 		const img = await this.epub.getCoverImage();
 		this.cover = `data:${imgType};base64,${img}`;
+
+		console.log(this.epub.TOC);
 	}
 }
