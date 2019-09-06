@@ -13,7 +13,6 @@ export class EPUB {
 	private rootDoc: Document;
 
 	private tocDir: string;
-	private tocDoc: Document;
 	private toc: TOC;
 	public get TOC(): TOC {
 		return this.toc;
@@ -24,51 +23,17 @@ export class EPUB {
 		this.zip = zip;
 	}
 
+	//#region init
 	public async init(): Promise<void> {
 		if (EPUB.metaPath in this.zip.files) {
-			const metaSrc = await this.zip.files[EPUB.metaPath].async("text");
-			const meta = this.xmlParser.parse(metaSrc);
-
-			const rootPath = this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
+			const rootPath = await this.initGetRootPath();
 
 			if (rootPath != null && rootPath.length > 0) {
 				this.rootDir = Path.dirname(rootPath);
 				const rootSrc = await this.zip.files[rootPath].async("text");
 				this.rootDoc = this.xmlParser.parse(rootSrc);
 
-				const tocID = this.readRoot("//p:spine/@toc", XPathResult.STRING_TYPE).stringValue;
-
-				if (tocID != null && tocID.length > 0) {
-					const tocPath = this.readRoot(`//p:manifest/*[@id="${tocID}"]/@href`, XPathResult.STRING_TYPE).stringValue;
-
-					if (tocPath != null && tocPath.length > 0) {
-						this.tocDir = Path.join(this.rootDir, Path.dirname(tocPath));
-						const tocSrc = await this.getFileInRoot(tocPath).async("text");
-						this.tocDoc = this.xmlParser.parse(tocSrc);
-
-						if (this.tocDoc != null) {
-							const title = this.readXML(this.tocDoc, "//t:docTitle/t:text/text()", XPathResult.STRING_TYPE).stringValue;
-							this.toc = new TOC(
-								title,
-								null,
-								null,
-								this.generateTOCChildren(
-									this.tocDoc,
-									this.readXML(this.tocDoc, "//t:navMap", XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
-								)
-							);
-						}
-						else {
-							throw new Error("Could not parse the TOC document");
-						}
-					}
-					else {
-						throw new Error("Could not find the TOC file");
-					}
-				}
-				else {
-					throw new Error("Could not find the TOC file's ID");
-				}
+				await this.initTOC();
 			}
 			else {
 				throw new Error("Could not find the root file");
@@ -79,6 +44,74 @@ export class EPUB {
 		}
 	}
 
+	private async initGetRootPath() {
+		const metaSrc = await this.zip.files[EPUB.metaPath].async("text");
+		const meta = this.xmlParser.parse(metaSrc);
+		return this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
+	}
+
+	private async initTOC() {
+		const tocID = this.readRoot("//p:spine/@toc", XPathResult.STRING_TYPE).stringValue;
+
+		if (tocID != null && tocID.length > 0) {
+			const tocPath = this.readRoot(`//p:manifest/*[@id="${tocID}"]/@href`, XPathResult.STRING_TYPE).stringValue;
+
+			if (tocPath != null && tocPath.length > 0) {
+				this.tocDir = Path.join(this.rootDir, Path.dirname(tocPath));
+				const tocDoc = await this.initGetTOCDoc(tocPath);
+
+				if (tocDoc != null) {
+					const title = this.readXML(tocDoc, "//t:docTitle/t:text/text()", XPathResult.STRING_TYPE).stringValue;
+					this.toc = new TOC(title, null, null, this.initGenerateTOCChildren(tocDoc, this.readXML(tocDoc, "//t:navMap", XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue));
+				}
+				else {
+					throw new Error("Could not parse the TOC document");
+				}
+			}
+			else {
+				throw new Error("Could not find the TOC file");
+			}
+		}
+		else {
+			throw new Error("Could not find the TOC file's ID");
+		}
+	}
+
+	private async initGetTOCDoc(tocPath: string) {
+		const tocSrc = await this.getFileInRoot(tocPath).async("text");
+		return this.xmlParser.parse(tocSrc);
+	}
+
+	private initGenerateTOCChildren(doc: Document, parent: Node): Array<TOC> {
+		const children = new Array<TOC>();
+
+		const nodeIterator = doc.evaluate("./t:navPoint", parent, this.nsResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+		for (let node = nodeIterator.iterateNext(); node != null; node = nodeIterator.iterateNext()) {
+			const title = doc.evaluate("./t:navLabel/t:text/text()", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
+
+			const path = doc.evaluate("./t:content/@src", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
+			const [filePath, anchor] = path.split("#");
+			const source = this.initGetFileInTOC(filePath);
+
+			children.push(
+				new TOC(
+					title,
+					source,
+					anchor,
+					this.initGenerateTOCChildren(doc, node)
+				)
+			);
+		}
+
+		return children;
+	}
+
+	private initGetFileInTOC(path: string): JSZip.JSZipObject {
+		return this.zip.files[Path.join(this.tocDir, path)];
+	}
+	//#endregion init
+
+	//#region XML reading
 	private nsResolver(p: string): string {
 		switch (p) {
 			case "o": return "urn:oasis:names:tc:opendocument:xmlns:container";
@@ -95,14 +128,13 @@ export class EPUB {
 	private readRoot(xPath: string, resultType: number): XPathResult {
 		return this.readXML(this.rootDoc, xPath, resultType);
 	}
+	//#endregion XML reading
 
 	private getFileInRoot(path: string): JSZip.JSZipObject {
 		return this.zip.files[Path.join(this.rootDir, path)];
 	}
-	private getFileInTOC(path: string): JSZip.JSZipObject {
-		return this.zip.files[Path.join(this.tocDir, path)];
-	}
 
+	//#region Metadata getters
 	public getTitle(): string {
 		return this.readRoot("//p:metadata/dc:title/text()", XPathResult.STRING_TYPE).stringValue;
 	}
@@ -132,7 +164,7 @@ export class EPUB {
 		return this.readRoot("//p:metadata/p:meta[@name=\"cover\"]/@content", XPathResult.STRING_TYPE).stringValue;
 	}
 	/**
-	 * @returns The cover image in Bas64 or null.
+	 * Returns he cover image in base64 or null.
 	 */
 	public async getCoverImage(): Promise<string> {
 		const coverID = this.getCoverID();
@@ -157,28 +189,5 @@ export class EPUB {
 			return null;
 		}
 	}
-
-	private generateTOCChildren(doc: Document, parent: Node): Array<TOC> {
-		const children = new Array<TOC>();
-
-		const nodeIterator = doc.evaluate("./t:navPoint", parent, this.nsResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-		for (let node = nodeIterator.iterateNext(); node != null; node = nodeIterator.iterateNext()) {
-			const title = doc.evaluate("./t:navLabel/t:text/text()", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
-
-			const path = doc.evaluate("./t:content/@src", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
-			const [filePath, anchor] = path.split("#");
-			const source = this.getFileInTOC(filePath);
-
-			children.push(
-				new TOC(
-					title,
-					source,
-					anchor,
-					this.generateTOCChildren(doc, node)
-				)
-			);
-		}
-
-		return children;
-	}
+	//#endregion Metadata getters
 }
