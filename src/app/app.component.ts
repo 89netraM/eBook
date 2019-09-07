@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { EPUBParserService } from "./EPUBParser/epubparser.service";
 import { EPUB } from "./EPUBParser/epub";
-import { TOC } from "./EPUBParser/toc";
+import { SpineEntry } from "./EPUBParser/spine";
 
 @Component({
 	selector: "app-root",
@@ -12,7 +12,7 @@ export class AppComponent {
 	private epub: EPUB;
 
 	public title: string = "";
-	public firstToc: TOC;
+	public spine: ReadonlyArray<SpineEntry>;
 
 	public constructor(private epubParser: EPUBParserService) { }
 
@@ -21,6 +21,6 @@ export class AppComponent {
 
 		this.title = this.epub.getTitle();
 
-		this.firstToc = this.epub.TOC.children[0];
+		this.spine = this.epub.Spine;
 	}
 }

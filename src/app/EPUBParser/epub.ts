@@ -2,6 +2,7 @@ import { XMLParserService } from "../XMLParser/XMLParser.service";
 import * as JSZip from "jszip";
 import * as Path from "path";
 import { TOC } from "./toc";
+import { SpineEntry } from "./spine";
 
 export class EPUB {
 	private static readonly metaPath: string = "META-INF/container.xml";
@@ -12,10 +13,14 @@ export class EPUB {
 	private rootDir: string;
 	private rootDoc: Document;
 
-	private tocDir: string;
-	private toc: TOC;
-	public get TOC(): TOC {
+	private toc: ReadonlyArray<TOC>;
+	public get TOC(): ReadonlyArray<TOC> {
 		return this.toc;
+	}
+
+	private spine: Array<SpineEntry>;
+	public get Spine(): ReadonlyArray<SpineEntry> {
+		return this.spine;
 	}
 
 	public constructor(xmlParser: XMLParserService, zip: JSZip) {
@@ -33,6 +38,8 @@ export class EPUB {
 				const rootSrc = await this.zip.files[rootPath].async("text");
 				this.rootDoc = this.xmlParser.parseXML(rootSrc);
 
+				this.initSpine();
+
 				await this.initTOC();
 			}
 			else {
@@ -44,10 +51,27 @@ export class EPUB {
 		}
 	}
 
-	private async initGetRootPath() {
+	private async initGetRootPath(): Promise<string> {
 		const metaSrc = await this.zip.files[EPUB.metaPath].async("text");
 		const meta = this.xmlParser.parseXML(metaSrc);
 		return this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
+	}
+
+	private initSpine(): void {
+		const iterator = this.readRoot("//p:spine/p:itemref/@idref", XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+
+		this.spine = new Array<SpineEntry>();
+		for (let node = iterator.iterateNext(); node != null; node = iterator.iterateNext()) {
+			const path = this.readRoot(`//*[@id="${node.nodeValue}"]/@href`, XPathResult.STRING_TYPE).stringValue;
+			if (path != null && path.length > 0) {
+				this.spine.push(
+					new SpineEntry(
+						this.getFileInRoot(path),
+						this.getFile.bind(this)
+					)
+				);
+			}
+		}
 	}
 
 	private async initTOC() {
@@ -57,18 +81,10 @@ export class EPUB {
 			const tocPath = this.readRoot(`//p:manifest/*[@id="${tocID}"]/@href`, XPathResult.STRING_TYPE).stringValue;
 
 			if (tocPath != null && tocPath.length > 0) {
-				this.tocDir = Path.join(this.rootDir, Path.dirname(tocPath));
 				const tocDoc = await this.initGetTOCDoc(tocPath);
 
 				if (tocDoc != null) {
-					const title = this.readXML(tocDoc, "//t:docTitle/t:text/text()", XPathResult.STRING_TYPE).stringValue;
-					this.toc = new TOC(
-						title,
-						null,
-						null,
-						this.initGenerateTOCChildren(tocDoc, this.readXML(tocDoc, "//t:navMap", XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue),
-						null
-					);
+					this.toc = this.initGenerateTOCChildren(tocDoc, this.readXML(tocDoc, "//t:navMap", XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue);
 				}
 				else {
 					throw new Error("Could not parse the TOC document");
@@ -97,15 +113,13 @@ export class EPUB {
 
 			const path = doc.evaluate("./t:content/@src", node, this.nsResolver, XPathResult.STRING_TYPE, null).stringValue;
 			const [filePath, anchor] = path.split("#");
-			const source = this.getFileInTOC(filePath);
 
 			children.push(
 				new TOC(
 					title,
-					source,
+					filePath,
 					anchor,
-					this.initGenerateTOCChildren(doc, node),
-					this.getFile.bind(this)
+					this.initGenerateTOCChildren(doc, node)
 				)
 			);
 		}
@@ -140,10 +154,6 @@ export class EPUB {
 
 	private getFileInRoot(path: string): JSZip.JSZipObject {
 		return this.getFile(Path.join(this.rootDir, path));
-	}
-
-	private getFileInTOC(path: string): JSZip.JSZipObject {
-		return this.getFile(Path.join(this.tocDir, path));
 	}
 	//#endregion Get files
 

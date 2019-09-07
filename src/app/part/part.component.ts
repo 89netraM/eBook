@@ -1,5 +1,5 @@
 import { Component, Input, ElementRef, AfterViewInit } from "@angular/core";
-import { TOC } from "../EPUBParser/toc";
+import { SpineEntry } from "../EPUBParser/spine";
 import { querySelectLinks, getLinkAttribute } from "./resourceLinks";
 
 @Component({
@@ -8,16 +8,16 @@ import { querySelectLinks, getLinkAttribute } from "./resourceLinks";
 	styleUrls: ["./part.component.scss"]
 })
 export class PartComponent implements AfterViewInit {
-	private _tocEntry: TOC;
-	@Input("tocEntry")
-	public set tocEntry(value: TOC) {
-		if (value != null && value !== this._tocEntry) {
-			this._tocEntry = value;
+	private _entry: SpineEntry;
+	@Input("entry")
+	public set entry(value: SpineEntry) {
+		if (value != null && value !== this._entry) {
+			this._entry = value;
 			this.updateDisplayedFile();
 		}
 	}
-	public get tocEntry(): TOC {
-		return this._tocEntry;
+	public get entry(): SpineEntry {
+		return this._entry;
 	}
 
 	private shadowRoot: ShadowRoot;
@@ -29,7 +29,7 @@ export class PartComponent implements AfterViewInit {
 	}
 
 	private async updateDisplayedFile(): Promise<void> {
-		const fileText = await this.tocEntry.source.async("text");
+		const fileText = await this.entry.source.async("text");
 		const tempDoc = new DOMParser().parseFromString(fileText, "text/html");
 
 		const elements = querySelectLinks(tempDoc);
@@ -54,7 +54,7 @@ export class PartComponent implements AfterViewInit {
 		if (!/^\w*?:/.test(link)) {
 			element.setAttribute(
 				attribute,
-				await this.tocEntry.getResource(link)
+				await this.entry.getResource(link)
 			);
 		}
 	}
