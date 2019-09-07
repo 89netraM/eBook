@@ -15,7 +15,7 @@ export const getLinkAttribute: (elem: Element) => string = (elem) => {
 };
 
 export const querySelectLinks: (node: ParentNode) => Array<Element> = (node) => {
-	const allElements = node.querySelectorAll("*");
+	const allElements = node.querySelectorAll("*:not(a)");
 	const matchingElements = new Array<Element>();
 
 	// tslint:disable-next-line: prefer-for-of
