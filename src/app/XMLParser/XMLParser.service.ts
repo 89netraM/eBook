@@ -15,6 +15,6 @@ export class XMLParserService {
 	}
 
 	public parseHTML(htmlSrc: string): Document {
-		return this.parse(htmlSrc, "text/html");
+		return this.parse(htmlSrc, "application/xhtml+xml");
 	}
 }
