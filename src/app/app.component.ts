@@ -1,6 +1,7 @@
 import { Component } from "@angular/core";
 import { EPUBParserService } from "./EPUBParser/epubparser.service";
 import { EPUB } from "./EPUBParser/epub";
+import { TOC } from "./EPUBParser/toc";
 
 @Component({
 	selector: "app-root",
@@ -11,7 +12,7 @@ export class AppComponent {
 	private epub: EPUB;
 
 	public title: string = "";
-	public cover: string = "";
+	public firstToc: TOC;
 
 	public constructor(private epubParser: EPUBParserService) { }
 
@@ -20,8 +21,6 @@ export class AppComponent {
 
 		this.title = this.epub.getTitle();
 
-		const imgType = this.epub.getCoverImageType();
-		const img = await this.epub.getCoverImage();
-		this.cover = `data:${imgType};base64,${img}`;
+		this.firstToc = this.epub.TOC.children[0];
 	}
 }

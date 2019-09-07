@@ -84,7 +84,8 @@
         "tabs"
     ],
     "eofline": false,
-    "one-line": false
+    "one-line": false,
+	"variable-name": false
   },
   "rulesDirectory": [
     "codelyzer"

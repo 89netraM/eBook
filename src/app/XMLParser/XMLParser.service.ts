@@ -6,7 +6,15 @@ import { Injectable } from "@angular/core";
 export class XMLParserService {
 	private parser: DOMParser = new DOMParser();
 
-	public parse(xmlSrc: string): Document {
-		return this.parser.parseFromString(xmlSrc, "text/xml");
+	private parse(src: string, type: SupportedType): Document {
+		return this.parser.parseFromString(src, type);
+	}
+
+	public parseXML(xmlSrc: string): Document {
+		return this.parse(xmlSrc, "text/xml");
+	}
+
+	public parseHTML(htmlSrc: string): Document {
+		return this.parse(htmlSrc, "text/html");
 	}
 }
