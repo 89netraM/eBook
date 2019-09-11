@@ -8,7 +8,7 @@ export class EPUB {
 	private static readonly metaPath: string = "META-INF/container.xml";
 
 	private xmlParser: XMLParserService;
-	private zip: JSZip;
+	public readonly zip: JSZip;
 
 	private rootDir: string;
 	private rootDoc: Document;

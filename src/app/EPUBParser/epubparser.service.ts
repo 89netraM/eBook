@@ -9,7 +9,7 @@ import { EPUB } from "./epub";
 export class EPUBParserService {
 	public constructor(private xmlParser: XMLParserService) { }
 
-	public async parse(file: File): Promise<EPUB> {
+	public async parse(file: File | string): Promise<EPUB> {
 		let zip: JSZip;
 		try {
 			zip = await JSZip.loadAsync(file);
