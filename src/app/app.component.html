@@ -4,4 +4,4 @@
 </label>
 
 <h1>{{title}}</h1>
-<app-part *ngFor="let entry of spine" [entry]="entry"></app-part>
+<app-part *ngFor="let entry of spine" [entry]="entry" (navigation)="bookNavigation($event)"></app-part>

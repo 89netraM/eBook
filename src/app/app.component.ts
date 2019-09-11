@@ -1,7 +1,8 @@
-import { Component } from "@angular/core";
+import { Component, ElementRef } from "@angular/core";
 import { EPUBParserService } from "./EPUBParser/epubparser.service";
 import { EPUB } from "./EPUBParser/epub";
 import { SpineEntry } from "./EPUBParser/spine";
+import { BookNavigationEvent } from "./part/bookNavigationEvent";
 
 @Component({
 	selector: "app-root",
@@ -14,7 +15,7 @@ export class AppComponent {
 	public title: string = "";
 	public spine: ReadonlyArray<SpineEntry>;
 
-	public constructor(private epubParser: EPUBParserService) { }
+	public constructor(private epubParser: EPUBParserService, private host: ElementRef<HTMLElement>) { }
 
 	public async fileChange(files: FileList): Promise<void> {
 		this.epub = await this.epubParser.parse(files[0]);
@@ -22,5 +23,13 @@ export class AppComponent {
 		this.title = this.epub.getTitle();
 
 		this.spine = this.epub.Spine;
+	}
+
+	public bookNavigation(e: BookNavigationEvent): void {
+		const element = this.host.nativeElement.querySelector(`[data-file="${e.file}"]`);
+
+		if (element != null) {
+			element.scrollIntoView();
+		}
 	}
 }
