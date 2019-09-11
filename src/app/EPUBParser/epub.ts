@@ -182,6 +182,9 @@ export class EPUB {
 	public getRights(): string {
 		return this.readRoot("//p:metadata/dc:rights/text()", XPathResult.STRING_TYPE).stringValue;
 	}
+	public getIdentifier(): string {
+		return this.readRoot("//p:metadata/dc:identifier/text()", XPathResult.STRING_TYPE).stringValue;
+	}
 
 	/**
 	 * Returns he cover image in base64 or null.
