@@ -1,0 +1,11 @@
+:host {
+	display: flex;
+
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+
+	> * {
+		min-width: 100%;
+	}
+}

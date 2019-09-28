@@ -22,6 +22,11 @@ export class PartComponent {
 		return this._entry;
 	}
 
+	@HostBinding("style.columnWidth")
+	public get columnWidth(): string {
+		return this.hostElement.nativeElement.offsetWidth + "px";
+	}
+
 	@HostBinding("attr.data-file")
 	public fileName: string;
 
@@ -30,7 +35,7 @@ export class PartComponent {
 
 	private shadowRoot: ShadowRoot;
 
-	public constructor(private hostElement: ElementRef, private xmlParser: XMLParserService) {
+	public constructor(private hostElement: ElementRef<HTMLElement>, private xmlParser: XMLParserService) {
 		this.shadowRoot = this.hostElement.nativeElement.attachShadow({ mode: "open" });
 	}
 

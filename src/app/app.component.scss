@@ -1,3 +1,8 @@
+label {
+	position: fixed;
+	top: 5px;
+	left: 5px;
+}
 label > input[type="file"] {
 	display: none;
 }
@@ -17,4 +22,8 @@ label > input[type="file"] + span {
 
 img {
 	max-width: 100%;
+}
+
+app-book {
+	height: 100vh;
 }
