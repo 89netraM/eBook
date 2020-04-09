@@ -48,7 +48,9 @@ export class SpineEntry {
 		return btoa(text);
 	}
 
-	public async getHTMLElement(xHtmlParser: (xHtml: string) => Document): Promise<HTMLElement> {
+	public async getHTMLElement(xHtmlParser: (xHtml: string) => Document): Promise<HTMLElement>;
+	public async getHTMLElement(xHtmlParser: (xHtml: string) => Document, pageStylesheet: string): Promise<HTMLElement>;
+	public async getHTMLElement(xHtmlParser: (xHtml: string) => Document, pageStylesheet?: string): Promise<HTMLElement> {
 		const fileText = await this.source.async("text");
 		const tempDoc = xHtmlParser(fileText);
 
@@ -60,6 +62,12 @@ export class SpineEntry {
 			promises.push(this.replaceLink(elements[i]));
 		}
 		await Promise.all(promises);
+
+		if (pageStylesheet != null) {
+			const style = tempDoc.createElement("style");
+			style.innerHTML = pageStylesheet;
+			tempDoc.head.appendChild(style);
+		}
 
 		return tempDoc.documentElement;
 	}

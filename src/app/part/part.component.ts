@@ -10,6 +10,11 @@ import { BookNavigationEvent } from "./bookNavigationEvent";
 	styleUrls: ["./part.component.scss"]
 })
 export class PartComponent {
+	private static pageStyles: string = `svg, img {
+	max-width: 100vw;
+	max-height: 100vh;
+}`;
+
 	private _entry: SpineEntry;
 	@Input("entry")
 	public set entry(value: SpineEntry) {
@@ -43,7 +48,7 @@ export class PartComponent {
 		this.fileName = this.entry.source.name;
 
 		this.shadowRoot.innerHTML = "";
-		this.shadowRoot.append(await this.entry.getHTMLElement(this.xmlParser.parseHTML.bind(this.xmlParser)));
+		this.shadowRoot.append(await this.entry.getHTMLElement(this.xmlParser.parseHTML.bind(this.xmlParser), PartComponent.pageStyles));
 		this.shadowRoot.querySelectorAll("a").forEach(x => x.addEventListener("click", this.linkClick.bind(this), true));
 	}
 
