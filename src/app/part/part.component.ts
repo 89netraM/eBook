@@ -27,9 +27,27 @@ export class PartComponent {
 		return this._entry;
 	}
 
+	private get columnWidth(): number {
+		return this.hostElement.nativeElement.offsetWidth;
+	}
+	private readonly columnGap: number = 40;
 	@HostBinding("style.columnWidth")
-	public get columnWidth(): string {
-		return this.hostElement.nativeElement.offsetWidth + "px";
+	public get styleColumnWidth(): string {
+		return `${this.columnWidth}px`;
+	}
+	@HostBinding("style.columnGap")
+	public get styleColumnGap(): string {
+		return `${this.columnGap}px`;
+	}
+
+	private currentPage: number = 0;
+	public get pageCount(): number {
+		if (this.shadowRoot != null && this.shadowRoot.children.length > 0) {
+			return Math.floor((this.shadowRoot.children[0].getBoundingClientRect().width + this.columnGap) / (this.columnWidth + this.columnGap));
+		}
+		else {
+			return 0;
+		}
 	}
 
 	@HostBinding("attr.data-file")
@@ -40,7 +58,7 @@ export class PartComponent {
 
 	private shadowRoot: ShadowRoot;
 
-	public constructor(private hostElement: ElementRef<HTMLElement>, private xmlParser: XMLParserService) {
+	public constructor(public hostElement: ElementRef<HTMLElement>, private xmlParser: XMLParserService) {
 		this.shadowRoot = this.hostElement.nativeElement.attachShadow({ mode: "open" });
 	}
 
@@ -67,6 +85,37 @@ export class PartComponent {
 
 				e.preventDefault();
 			}
+		}
+	}
+
+	public bookNavigation(e: BookNavigationEvent): void {
+		const targetElement = this.shadowRoot.getElementById(e.hash);
+		if (targetElement != null) {
+			const targetRect = targetElement.getBoundingClientRect();
+			const partRect = this.shadowRoot.children[0].getBoundingClientRect();
+			const targetMiddle = (targetRect.left - partRect.left) + targetRect.width / 2;
+			this.setPage(targetMiddle / partRect.width);
+		}
+		else {
+			this.setPage(0.00);
+		}
+	}
+
+	public setPage(percentage: number): void {
+		this.movePage(Math.floor(this.pageCount * percentage) - this.currentPage);
+	}
+
+	public movePage(steps: number): boolean {
+		const pageBefore = this.currentPage;
+
+		this.currentPage = Math.max(0, Math.min(this.currentPage + steps, this.pageCount - 1));
+		
+		if (this.currentPage !== pageBefore) {
+			this.hostElement.nativeElement.scrollLeft = (this.columnWidth + this.columnGap) * this.currentPage;
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 }
