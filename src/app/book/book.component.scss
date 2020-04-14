@@ -6,6 +6,8 @@
 	flex-wrap: nowrap;
 	align-items: stretch;
 
+	pointer-events: none;
+
 	> * {
 		min-width: 100%;
 	}

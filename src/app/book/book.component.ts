@@ -77,6 +77,44 @@ export class BookComponent {
 		}
 	}
 
+	//#region Drag
+	private dragLocked: boolean = false;
+	private dragStartX: number;
+
+	@HostListener("window:touchstart", ["$event"])
+	@HostListener("window:mousedown", ["$event"])
+	public dragStart(e: TouchEvent | MouseEvent): void {
+		this.dragStartX = this.dragUnify(e).clientX;
+		this.dragLocked = true;
+	}
+
+	@HostListener("window:touchend", ["$event"])
+	@HostListener("window:touchcancel", ["$event"])
+	@HostListener("window:mouseup", ["$event"])
+	public dragEnd(e: TouchEvent | MouseEvent): void {
+		if (this.dragLocked) {
+			const deltaX = this.dragUnify(e).clientX - this.dragStartX;
+			if (Math.abs(deltaX) > 25) {
+				this.movePage(-Math.abs(deltaX) / deltaX);
+			}
+
+			this.dragLocked = false;
+		}
+	}
+
+	private dragUnify(e: TouchEvent | MouseEvent): MouseEvent | Touch {
+		if (e instanceof TouchEvent) {
+			return e.changedTouches[0];
+		}
+		else if (e instanceof MouseEvent) {
+			return e;
+		}
+		else {
+			return null;
+		}
+	}
+	//#endregion Drag
+
 	public setPage(percentage: number): void {
 		let pages = Math.floor(this.pageCount * percentage);
 		for (const part of this.parts.toArray()) {
