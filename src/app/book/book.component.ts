@@ -82,7 +82,6 @@ export class BookComponent {
 	private dragStartX: number;
 
 	@HostListener("window:touchstart", ["$event"])
-	@HostListener("window:mousedown", ["$event"])
 	public dragStart(e: TouchEvent | MouseEvent): void {
 		this.dragStartX = this.dragUnify(e).clientX;
 		this.dragLocked = true;
@@ -90,7 +89,6 @@ export class BookComponent {
 
 	@HostListener("window:touchend", ["$event"])
 	@HostListener("window:touchcancel", ["$event"])
-	@HostListener("window:mouseup", ["$event"])
 	public dragEnd(e: TouchEvent | MouseEvent): void {
 		if (this.dragLocked) {
 			const deltaX = this.dragUnify(e).clientX - this.dragStartX;
