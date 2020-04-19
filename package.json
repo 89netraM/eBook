@@ -21,7 +21,7 @@
     "@angular/router": "~8.2.4",
     "jszip": "^3.2.2",
     "mime-types": "^2.1.24",
-    "path": "^0.12.7",
+    "path": "npm:path-browserify@^1.0.1",
     "rxjs": "~6.4.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1"
