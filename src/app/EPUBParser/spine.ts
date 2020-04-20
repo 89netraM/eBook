@@ -34,7 +34,7 @@ export class SpineEntry {
 		let text = await file.async("text");
 
 		// TODO: What happens if a URL ends with an escaped backslash? "url('http://åsberg.net/troll\\')".
-		const regexp = /(url\()(["'])(.*?[^\\])\2(\))/g;
+		const regexp = /(url\()(["']?)(.*?[^\\])\2(\))/g;
 
 		for (let result = regexp.exec(text); result != null; result = regexp.exec(text)) {
 			if (this.isLinkLocalResource(result[3])) {
