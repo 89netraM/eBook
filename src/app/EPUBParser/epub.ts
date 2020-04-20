@@ -35,8 +35,7 @@ export class EPUB {
 
 			if (rootPath != null && rootPath.length > 0) {
 				this.rootDir = Path.dirname(rootPath);
-				const rootSrc = await this.zip.files[rootPath].async("text");
-				this.rootDoc = this.xmlParser.parseXML(rootSrc);
+				this.rootDoc = await this.getDoc(this.getFile(rootPath));
 
 				this.initSpine();
 
@@ -52,8 +51,7 @@ export class EPUB {
 	}
 
 	private async initGetRootPath(): Promise<string> {
-		const metaSrc = await this.zip.files[EPUB.metaPath].async("text");
-		const meta = this.xmlParser.parseXML(metaSrc);
+		const meta = await this.getDoc(this.getFile(EPUB.metaPath));
 		return this.readXML(meta, "//o:rootfiles/o:rootfile[1]/@full-path", XPathResult.STRING_TYPE).stringValue;
 	}
 
@@ -81,7 +79,7 @@ export class EPUB {
 			const tocPath = this.readRoot(`//p:manifest/*[@id="${tocID}"]/@href`, XPathResult.STRING_TYPE).stringValue;
 
 			if (tocPath != null && tocPath.length > 0) {
-				const tocDoc = await this.initGetTOCDoc(tocPath);
+				const tocDoc = await this.getDoc(this.getFileInRoot(tocPath));
 
 				if (tocDoc != null) {
 					this.toc = this.initGenerateTOCChildren(tocDoc, this.readXML(tocDoc, "//t:navMap", XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue);
@@ -99,9 +97,15 @@ export class EPUB {
 		}
 	}
 
-	private async initGetTOCDoc(tocPath: string) {
-		const tocSrc = await this.getFileInRoot(tocPath).async("text");
-		return this.xmlParser.parseXML(tocSrc);
+	private async getDoc(file: JSZip.JSZipObject): Promise<Document> {
+		let srcText = await file.async("text");
+
+		// Gets rid of those pesky BOM bytes
+		if (srcText.codePointAt(0) === 0xFEFF) {
+			srcText = srcText.substr(1);
+		}
+
+		return this.xmlParser.parseXML(srcText);
 	}
 
 	private initGenerateTOCChildren(doc: Document, parent: Node): Array<TOC> {
