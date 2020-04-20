@@ -83,8 +83,10 @@ export class BookComponent {
 
 	@HostListener("window:touchstart", ["$event"])
 	public dragStart(e: TouchEvent | MouseEvent): void {
-		this.dragStartX = this.dragUnify(e).clientX;
-		this.dragLocked = true;
+		if (e.target instanceof Node && e.target.nodeName === "APP-PART") {
+			this.dragStartX = this.dragUnify(e).clientX;
+			this.dragLocked = true;
+		}
 	}
 
 	@HostListener("window:touchend", ["$event"])
