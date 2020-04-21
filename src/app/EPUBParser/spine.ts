@@ -13,18 +13,23 @@ export class SpineEntry {
 		this.resourceGetter = resourceGetter;
 	}
 
-	private async getResource(name: string): Promise<string> {
-		const path = Path.join(Path.dirname(this.source.name), name);
+	private async getResource(name: string): Promise<string>;
+	private async getResource(name: string, relativeTo: string): Promise<string>;
+	private async getResource(name: string, relativeTo?: string): Promise<string> {
+		const path = Path.join(Path.dirname(relativeTo || this.source.name), name);
 		const file = this.resourceGetter(path);
 		const mimeType = mime.lookup(path);
 
 		/** The resource in base64 */
 		let data: string;
-		if (mimeType === "text/css") {
-			data = await this.getStylesheet(file);
-		}
-		else {
-			data = await file.async("base64");
+
+		if (file != null) {
+			if (mimeType === "text/css") {
+				data = await this.getStylesheet(file);
+			}
+			else {
+				data = await file.async("base64");
+			}
 		}
 
 		return `data:${mimeType};base64,${data}`;
@@ -38,7 +43,7 @@ export class SpineEntry {
 
 		for (let result = regexp.exec(text); result != null; result = regexp.exec(text)) {
 			if (this.isLinkLocalResource(result[3])) {
-				const resource = await this.getResource(result[3]);
+				const resource = await this.getResource(result[3], file.name);
 				text = text.substring(0, result.index) +                       // Before the match.
 					result[1] + result[2] + resource + result[2] + result[4] + // The match, with the link replaced.
 					text.substring(result.index + result[0].length, text.length); // After the match.
