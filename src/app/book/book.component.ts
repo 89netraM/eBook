@@ -32,6 +32,19 @@ export class BookComponent {
 		return this.parts.reduce((s, x) => s + x.pageCount, 0);
 	}
 
+	public get percentage(): number {
+		if (this.parts != null && this.currentPart > 0) {
+			const partsArray = this.parts.toArray();
+			return ((partsArray.slice(0, this.currentPart).reduce((s, x) => s + x.pageCount, 0) + partsArray[this.currentPart].currentPage) / this.pageCount) * 100;
+		}
+		else {
+			return 0;
+		}
+	}
+	public set percentage(value: number) {
+		this.setPage(value / 100);
+	}
+
 	public constructor() { }
 
 	public bookNavigation(e: BookNavigationEvent): void {

@@ -1,1 +1,3 @@
 <app-part #parts *ngFor="let entry of spine" [entry]="entry" (navigation)="bookNavigation($event)"></app-part>
+
+<app-controls [(percentage)]="percentage"></app-controls>

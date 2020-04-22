@@ -40,7 +40,10 @@ export class PartComponent {
 		return `${this.columnGap}px`;
 	}
 
-	private currentPage: number = 0;
+	private _currentPage: number = 0;
+	public get currentPage(): number {
+		return this._currentPage;
+	}
 	public get pageCount(): number {
 		if (this.shadowRoot != null && this.shadowRoot.children.length > 0) {
 			return Math.floor((this.shadowRoot.children[0].getBoundingClientRect().width + this.columnGap) / (this.columnWidth + this.columnGap));
@@ -108,7 +111,7 @@ export class PartComponent {
 	public movePage(steps: number): boolean {
 		const pageBefore = this.currentPage;
 
-		this.currentPage = Math.max(0, Math.min(this.currentPage + steps, this.pageCount - 1));
+		this._currentPage = Math.max(0, Math.min(this.currentPage + steps, this.pageCount - 1));
 		
 		if (this.currentPage !== pageBefore) {
 			this.hostElement.nativeElement.scrollLeft = (this.columnWidth + this.columnGap) * this.currentPage;
