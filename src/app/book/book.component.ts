@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, ViewChildren, QueryList } from "@angular/core";
+import { Component, Input, HostListener, ViewChildren, QueryList, Output, EventEmitter } from "@angular/core";
 import { EPUB } from "../EPUBParser/epub";
 import { SpineEntry } from "../EPUBParser/spine";
 import { BookNavigationEvent } from "../part/bookNavigationEvent";
@@ -44,6 +44,9 @@ export class BookComponent {
 	public set percentage(value: number) {
 		this.setPage(value / 100);
 	}
+
+	@Output()
+	public closeBook = new EventEmitter();
 
 	public showControls: boolean = false;
 

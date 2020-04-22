@@ -1,6 +1,6 @@
-<label>
-	<input type="file" (change)="fileChange($event.target.files)"/>
+<label *ngIf="epub == null">
+	<input type="file" accept=".epub,application/epub+zip" (change)="fileChange($event.target.files)"/>
 	<span>Open .epub</span>
 </label>
 
-<app-book [book]="epub"></app-book>
+<app-book *ngIf="epub != null" [book]="epub" (closeBook)="epub = null"></app-book>

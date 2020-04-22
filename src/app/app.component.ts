@@ -1,4 +1,4 @@
-import { Component, ElementRef } from "@angular/core";
+import { Component } from "@angular/core";
 import { EPUBParserService } from "./EPUBParser/epubparser.service";
 import { EPUB } from "./EPUBParser/epub";
 
@@ -10,7 +10,7 @@ import { EPUB } from "./EPUBParser/epub";
 export class AppComponent {
 	public epub: EPUB;
 
-	public constructor(private epubParser: EPUBParserService, private host: ElementRef<HTMLElement>) { }
+	public constructor(private epubParser: EPUBParserService) { }
 
 	public async fileChange(files: FileList): Promise<void> {
 		this.epub = await this.epubParser.parse(files[0]);

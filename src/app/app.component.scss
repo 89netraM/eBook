@@ -1,29 +1,52 @@
-label {
-	position: fixed;
-	top: 5px;
-	left: 5px;
-}
-label > input[type="file"] {
-	display: none;
-}
-label > input[type="file"] + span {
-	padding: 2px;
-	border: 1px solid #333333;
-	background-color: #dddddd;
-
-	&:hover {
-		background-color: #eeeeee;
-	}
-
-	&:active {
-		background-color: #cccccc;
-	}
-}
-
-img {
-	max-width: 100%;
-}
-
-app-book {
+:host {
+	width: 100vw;
 	height: 100vh;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	label {
+		display: block;
+		position: relative;
+
+		cursor: pointer;
+		
+		&::before {
+			content: "";
+
+			$padding: 2rem;
+			$size: calc(100% + #{$padding});
+			width: $size;
+			display: block;
+			padding-top: $size;
+			background-color: var(--accent-color);
+			border-radius: 50%;
+
+			position: absolute;
+			top: calc(-#{$padding * 1.15} - 50%); // Why `* 1.15`?
+			left: -$padding / 2;
+
+			transition: filter 0.1s;
+		}
+		&:hover::before {
+			filter: brightness(1.05);
+		}
+		&:active::before {
+			filter: brightness(0.95);
+		}
+		
+		input {
+			display: none;
+		}
+
+		span {
+			position: relative;
+			font-weight: 700;
+		}
+	}
+
+	app-book {
+		height: 100vh;
+	}
 }
