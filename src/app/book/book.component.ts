@@ -117,10 +117,12 @@ export class BookComponent {
 
 	public setPage(percentage: number): void {
 		let pages = Math.floor(this.pageCount * percentage);
+		let i = 0;
 		for (const part of this.parts.toArray()) {
 			if (pages >= 0) {
-				if (part.pageCount < pages) {
+				if (pages < part.pageCount) {
 					part.hostElement.nativeElement.scrollIntoView();
+					this.currentPart = i;
 					part.setPage(pages / part.pageCount);
 				}
 				else {
@@ -131,6 +133,8 @@ export class BookComponent {
 			else {
 				part.setPage(0.00);
 			}
+
+			i++;
 		}
 	}
 
