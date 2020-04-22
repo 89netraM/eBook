@@ -45,6 +45,8 @@ export class BookComponent {
 		this.setPage(value / 100);
 	}
 
+	public showControls: boolean = false;
+
 	public constructor() { }
 
 	public bookNavigation(e: BookNavigationEvent): void {
@@ -87,6 +89,17 @@ export class BookComponent {
 	public onScroll(e: WheelEvent): void {
 		if (Math.abs(e.deltaY) > 0) {
 			this.movePage(Math.abs(e.deltaY) / e.deltaY);
+		}
+	}
+
+	@HostListener("click", ["$event"])
+	public onClick(e: MouseEvent): void {
+		if (this.book != null) {
+			const path = e.composedPath();
+			// Only show/hide if the event came through an app-part element
+			if (path.some(x => x instanceof Node && x.nodeName === "APP-PART")) {
+				this.showControls = !this.showControls;
+			}
 		}
 	}
 
