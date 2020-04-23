@@ -10,7 +10,10 @@ import { BookNavigationEvent } from "./bookNavigationEvent";
 	styleUrls: ["./part.component.scss"]
 })
 export class PartComponent {
-	private static pageStyles: string = `svg, img {
+	private static pageStyles: string = `html {
+	padding: 0px 0.75rem;
+}
+svg, img {
 	max-width: 100vw;
 	max-height: 100vh;
 }`;
@@ -30,14 +33,12 @@ export class PartComponent {
 	private get columnWidth(): number {
 		return this.hostElement.nativeElement.offsetWidth;
 	}
-	private readonly columnGap: number = 40;
+	private get columnGap(): number {
+		return parseFloat(window.getComputedStyle(this.hostElement.nativeElement).columnGap);
+	}
 	@HostBinding("style.columnWidth")
 	public get styleColumnWidth(): string {
 		return `${this.columnWidth}px`;
-	}
-	@HostBinding("style.columnGap")
-	public get styleColumnGap(): string {
-		return `${this.columnGap}px`;
 	}
 
 	private _currentPage: number = 0;
