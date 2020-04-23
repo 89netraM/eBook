@@ -95,8 +95,9 @@ export class BookComponent {
 	public onClick(e: MouseEvent): void {
 		if (this.book != null) {
 			const path = e.composedPath();
+			const ogTarget = path[0];
 			// Only show/hide if the event came through an app-part element
-			if (path.some(x => x instanceof Node && x.nodeName === "APP-PART")) {
+			if (!(ogTarget instanceof Node && ogTarget.nodeName === "A") && path.some(x => x instanceof Node && x.nodeName === "APP-PART")) {
 				this.showControls = !this.showControls;
 			}
 		}
