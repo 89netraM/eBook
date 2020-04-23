@@ -31,6 +31,11 @@ export class ControlsComponent {
 	@HostBinding("class.visible")
 	public visible: boolean = true;
 
+	public tocVisible = false;
+	public get styleTOCVisible(): string {
+		return this.tocVisible ? "visible" : "collapse";
+	}
+
 	public constructor() { }
 
 	public onPercentageChange(e: number) {

@@ -1,60 +1,74 @@
 :host {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+
+	pointer-events: none;
 	visibility: collapse;
 	opacity: 0;
 	$transition-time: 0.25s;
 	transition: opacity $transition-time, visibility $transition-time;
-
-	padding: 0.5rem 1rem;
-	background-color: rgba(0, 0, 0, 0.0);
-	backdrop-filter: blur(5px);
 
 	&.visible {
 		visibility: visible;
 		opacity: 1;
 	}
 
-	.page-scrubber {
-		display: flex;
-		flex-direction: row;
-
-		input {
-			flex-grow: 1;
-			flex-basis: 0;
-		}
-		span {
-			flex-grow: 0;
-			flex-basis: 5ch;
-			text-align: right;
-		}
+	> * {
+		pointer-events: all;
 	}
+	
+	app-toc {
+		flex-grow: 1;
+	}
+	
+	aside {
+		padding: 0.5rem 1rem;
+		backdrop-filter: blur(5px);
 
-	.button-bar {
-		margin-top: 0.5rem;
-		padding: 0px 0.5rem;
-
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-
-		button {
-			$menu-button-size: 2rem;
-			width: $menu-button-size;
-			height: $menu-button-size;
-			padding: 0px;
-			margin: 0px;
-
-			border: none;
-			background: none;
-			background-position: center;
-			background-repeat: no-repeat;
-			background-size: contain;
-			outline: none;
-
-			&.toc {
-				background-image: url("src/icons/single-choice.png");
+		.page-scrubber {
+			display: flex;
+			flex-direction: row;
+	
+			input {
+				flex-grow: 1;
+				flex-basis: 0;
 			}
-			&.more {
-				background-image: url("src/icons/menu-vertical.png");
+			span {
+				flex-grow: 0;
+				flex-basis: 5ch;
+				text-align: right;
+			}
+		}
+	
+		.button-bar {
+			margin-top: 0.5rem;
+			padding: 0px 0.5rem;
+	
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+	
+			button {
+				$menu-button-size: 2rem;
+				width: $menu-button-size;
+				height: $menu-button-size;
+				padding: 0px;
+				margin: 0px;
+	
+				border: none;
+				background: none;
+				background-position: center;
+				background-repeat: no-repeat;
+				background-size: contain;
+				outline: none;
+	
+				&.toc {
+					background-image: url("src/icons/single-choice.png");
+				}
+				&.more {
+					background-image: url("src/icons/menu-vertical.png");
+				}
 			}
 		}
 	}

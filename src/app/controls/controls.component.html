@@ -1,9 +1,13 @@
-<div class="page-scrubber">
-	<input type="range" step="0.1" min="0" [ngModel]="percentage" (ngModelChange)="onPercentageChange($event)" max="100"/>
-	<span>{{prettyPercentage}}&nbsp;%</span>
-</div>
+<app-toc [style.visibility]="styleTOCVisible"></app-toc>
 
-<div class="button-bar">
-	<button class="toc"></button>
-	<button class="more"></button>
-</div>
+<aside>
+	<div class="page-scrubber">
+		<input type="range" step="0.1" min="0" [ngModel]="percentage" (ngModelChange)="onPercentageChange($event)" max="100"/>
+		<span>{{prettyPercentage}}&nbsp;%</span>
+	</div>
+	
+	<div class="button-bar">
+		<button class="toc" (click)="tocVisible = !tocVisible"></button>
+		<button class="more"></button>
+	</div>
+</aside>

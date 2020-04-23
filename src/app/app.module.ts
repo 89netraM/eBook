@@ -6,13 +6,15 @@ import { AppComponent } from "./app.component";
 import { PartComponent } from "./part/part.component";
 import { BookComponent } from "./book/book.component";
 import { ControlsComponent } from "./controls/controls.component";
+import { TOCComponent } from "./controls/toc/toc.component";
 
 @NgModule({
 	declarations: [
 		AppComponent,
 		PartComponent,
 		BookComponent,
-		ControlsComponent
+		ControlsComponent,
+		TOCComponent
 	],
 	imports: [
 		BrowserModule,
