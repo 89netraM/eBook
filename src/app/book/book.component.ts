@@ -96,7 +96,7 @@ export class BookComponent {
 		if (this.book != null) {
 			const path = e.composedPath();
 			// Only show/hide if the event came through an app-part element
-			if (!(path[0] instanceof Node && path[0].nodeName === "A") && path.some(x => x instanceof Node && x.nodeName === "APP-PART")) {
+			if (path.some(x => x instanceof Node && x.nodeName === "APP-PART")) {
 				this.showControls = !this.showControls;
 			}
 		}
