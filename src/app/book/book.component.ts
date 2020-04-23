@@ -53,18 +53,13 @@ export class BookComponent {
 	public constructor() { }
 
 	public bookNavigation(e: BookNavigationEvent): void {
-		const partsArray = this.parts.toArray();
-		const index = partsArray.findIndex(x => x.fileName === e.file);
-
-		if (index >= 0) {
-			partsArray[index].hostElement.nativeElement.scrollIntoView();
-			this.currentPart = index;
-		}
 		let found = false;
+		let index = 0;
 		for (const part of this.parts.toArray()) {
 			if (!found) {
 				if (part.fileName === e.file) {
 					part.hostElement.nativeElement.scrollIntoView();
+					this.currentPart = index;
 					part.bookNavigation(e);
 					
 					found = true;
@@ -76,6 +71,7 @@ export class BookComponent {
 			else {
 				part.setPage(0.00);
 			}
+			index++;
 		}
 	}
 
