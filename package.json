@@ -19,7 +19,7 @@
     "@angular/platform-browser": "~8.2.4",
     "@angular/platform-browser-dynamic": "~8.2.4",
     "@angular/router": "~8.2.4",
-    "jszip": "^3.2.2",
+    "jszip": "^3.7.0",
     "mime-types": "^2.1.24",
     "path": "npm:path-browserify@^1.0.1",
     "rxjs": "~6.4.0",
